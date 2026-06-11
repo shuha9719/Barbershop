@@ -1,3 +1,5 @@
+// Примерка одной стрижки. Использует нативный FormData/Blob из Node 18+,
+// поэтому пакет form-data больше не нужен (он ломал fetch ошибкой "duplex required").
 exports.handler = async (event) => {
   if (event.httpMethod !== 'POST') {
     return { statusCode: 405, body: 'Method Not Allowed' };
@@ -6,7 +8,7 @@ exports.handler = async (event) => {
   try {
     const { imageBase64, imageMime, haircutName, haircutDescription } = JSON.parse(event.body);
 
-    const prompt = `This is a photo of a real person. Apply the "${haircutName}" men's haircut to them. ${haircutDescription || ''} Keep the person's face, skin tone, eyes, eyebrows and all facial features completely identical to the original photo. Only modify the hair on top of the head. Maintain the same lighting, background, and photo realism.`;
+    const prompt = `This is a photo of a real person. Apply the "${haircutName}" men's haircut to them. ${haircutDescription || ''} Keep the person's face, skin tone, eyes, eyebrows and all facial features completely identical to the original photo. Only modify the hair on top of the head — change its style, length, and shape to match the requested haircut. Maintain the same lighting, background, and photo realism. The result should look like a professional barbershop before/after photo.`;
 
     const imageBuffer = Buffer.from(imageBase64, 'base64');
 
@@ -15,8 +17,8 @@ exports.handler = async (event) => {
     form.append('prompt', prompt);
     form.append('n', '1');
     form.append('size', '1024x1024');
-    form.append('quality', 'medium');
-    form.append('input_fidelity', 'high');
+    form.append('quality', 'medium');          // быстрее, чтобы уложиться в таймаут Netlify
+    form.append('input_fidelity', 'high');     // максимальное сохранение лица
     form.append('image', new Blob([imageBuffer], { type: imageMime || 'image/jpeg' }), 'photo.jpg');
 
     const response = await fetch('https://api.openai.com/v1/images/edits', {

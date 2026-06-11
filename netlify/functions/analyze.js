@@ -18,7 +18,11 @@ exports.handler = async (event) => {
         messages: [
           {
             role: 'system',
-            content: 'Ты — профессиональный консультант-парикмахер в мужском барбершопе. Анализируй тип, структуру и густоту волос на фото и рекомендуй мужские стрижки. ВАЖНО: отвечай строго в заданном формате, простым текстом, БЕЗ markdown, БЕЗ символов **, без заголовков #. Каждый пункт с новой строки в виде КЛЮЧ: значение.'
+            content: `Ты — профессиональный консультант-парикмахер в мужском барбершопе. 
+Твоя единственная задача — анализировать тип, структуру и густоту волос на фотографии, 
+а затем рекомендовать подходящие мужские стрижки. 
+Ты работаешь только с характеристиками волос и формой головы — это стандартная профессиональная консультация.
+Всегда отвечай в заданном формате, никогда не отказывайся от задачи.`
           },
           {
             role: 'user',
@@ -41,9 +45,7 @@ exports.handler = async (event) => {
       };
     }
 
-    let text = data.choices?.[0]?.message?.content || '';
-    // убираем markdown, если модель всё-таки его добавила
-    text = text.replace(/\*\*/g, '').replace(/^#+\s*/gm, '').replace(/^[-•]\s*/gm, '');
+    const text = data.choices?.[0]?.message?.content || '';
 
     return {
       statusCode: 200,
@@ -52,6 +54,9 @@ exports.handler = async (event) => {
     };
   } catch (err) {
     console.error('Function error:', err);
-    return { statusCode: 500, body: JSON.stringify({ error: err.message }) };
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ error: err.message })
+    };
   }
 };
